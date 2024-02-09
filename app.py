@@ -9,7 +9,15 @@ class Amazon:
     async def random_delay(self):
         # Introduce a random delay between 0.5 and 2 seconds
         return random.uniform(0.5, 2.5)
+    
+    def captcha(self,url,captcha):
+        
+        print("Input captcha")
+        await page.type("//input[@type='text']", input("Captcha: "))
 
+        await page.click('//*[@id="a-autoid-0"]/span/input')
+        self.run(url)
+        
     async def run(self,url):
 
         async with async_playwright() as p:
@@ -37,20 +45,16 @@ class Amazon:
             await page.click("//input[@id='signInSubmit']")
             await asyncio.sleep(await self.random_delay())
             await page.wait_for_load_state("load")
-            html = await page.content()
-            with open('web.html', 'w', encoding='UTF-8') as f:
-                f.write(html)
-            await page.wait_for_selector("//div[@aria-label='Other UPI Apps']")
-
+                  
             if 'captcha' in await page.content():
                 print("captcha")
                 img = page.locator("//img[@alt='captcha']")
 
                 await img.screenshot(path='captcha.png')
 
-                await page.type("//input[@type='text']", input("Captcha: "))
+                return self.captcha()
 
-                await page.click('//*[@id="a-autoid-0"]/span/input')
+            await page.wait_for_selector("//div[@aria-label='Other UPI Apps']")
 
             await asyncio.sleep(await self.random_delay())
 

@@ -1,5 +1,6 @@
 import asyncio
 import random
+from time import sleep
 from playwright.async_api import async_playwright
 from playwright_stealth import stealth_async
 
@@ -22,10 +23,7 @@ class Amazon:
             # Navigate to a website
             await page.goto(url)
             await page.wait_for_load_state("load")
-            html = await page.content()
-            with open('web.html', 'w', encoding='UTF-8') as f:
-                f.write(html)
-            
+ 
             await asyncio.sleep(await self.random_delay())
             await page.click("//input[@id='buy-now-button']")
 
@@ -38,7 +36,10 @@ class Amazon:
 
             await page.click("//input[@id='signInSubmit']")
             await asyncio.sleep(await self.random_delay())
-
+            await page.wait_for_load_state("load")
+            html = await page.content()
+            with open('web.html', 'w', encoding='UTF-8') as f:
+                f.write(html)
             await page.wait_for_selector("//div[@aria-label='Other UPI Apps']")
 
             if 'captcha' in await page.content():

@@ -40,7 +40,7 @@ def solve_captcha():
         requester_ip = request.remote_addr
         print(f"Requester IP Address: {requester_ip}")
         print(f"Requester data: {request_data}")
-        result = asyncio.run(amazon_instance.captcha(captcha))  # Start the captcha-solving thread
+        result = asyncio.create_task(amazon_instance.captcha(captcha))  # Start the captcha-solving thread
         return jsonify(result), 201
     else:
         return jsonify({'error': 'Missing captcha or url'}), 401

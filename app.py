@@ -15,16 +15,14 @@ class Amazon:
     
     async def captcha(self, captcha):
         async with async_playwright() as p:
-            print("Input captcha")
 
-            browser = await p.chromium.launch(headless=False)
+            browser = await p.chromium.launch(headless=True)
             context = await browser.new_context(storage_state="state.json")
             # Apply stealth options to the context
             self.page = await context.new_page()
+            await context.storage_state(path="state.json")
             page = self.page
-            input()
-            await page.goto(self.url1)
-
+            print("Input captcha")
             await page.type("//input[@type='text']", captcha)
 
             await page.click('//*[@id="a-autoid-0"]/span/input')
@@ -32,7 +30,7 @@ class Amazon:
     async def run(self,url):
 
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=False)
+            browser = await p.chromium.launch(headless=True)
             context = await browser.new_context()
             # Apply stealth options to the context
             self.page = await context.new_page()
@@ -55,19 +53,17 @@ class Amazon:
 
             await page.click("//input[@id='signInSubmit']")
             await asyncio.sleep(await self.random_delay())
-            await page.goto(r"E:\play_wright\web.html")
             await page.wait_for_load_state("load")
+
             if 'captcha' in await page.content():
                 print("captcha")
                 img = page.locator("//img[@alt='captcha']")
 
                 await img.screenshot(path='captcha.png')
 
-                self.url1 = page.url.strip()
-                print(self.url1)
-                await context.storage_state(path="state.json")
+                self.url1 = page.url.encode(encoding='UTF-8')
 
-                return {"msg":"captcha"}
+                await context.storage_state(path="state.json")
 
             await page.wait_for_selector("//div[@aria-label='Other UPI Apps']")
 

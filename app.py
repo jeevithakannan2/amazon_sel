@@ -17,7 +17,7 @@ class Amazon:
         async with async_playwright() as p:
             print("Input captcha")
 
-            browser = await p.chromium.launch(headless=False)
+            browser = await p.chromium.launch(headless=True)
             context = await browser.new_context(storage_state="state.json")
             # Apply stealth options to the context
             self.page = await context.new_page()
@@ -26,13 +26,18 @@ class Amazon:
             await page.goto(self.url1)
 
             await page.type("//input[@type='text']", captcha)
-
+            input()
             await page.click('//*[@id="a-autoid-0"]/span/input')
+            
+            input()
+            html = await page.content()
+            with open('webpage.html','w',encoding='UTF-8') as f:
+                f.write(html)
 
     async def run(self,url):
 
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=False)
+            browser = await p.chromium.launch(headless=True)
             context = await browser.new_context()
             # Apply stealth options to the context
             self.page = await context.new_page()
@@ -55,7 +60,7 @@ class Amazon:
 
             await page.click("//input[@id='signInSubmit']")
             await asyncio.sleep(await self.random_delay())
-            await page.goto(r"E:\play_wright\web.html")
+            
             await page.wait_for_load_state("load")
             if 'captcha' in await page.content():
                 print("captcha")

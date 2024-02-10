@@ -4,28 +4,39 @@ from time import sleep
 from playwright.async_api import async_playwright
 from playwright_stealth import stealth_async
 
-
 class Amazon:
+    def __init__(self):
+        self.page = None
+        self.url1 = None
+
     async def random_delay(self):
         # Introduce a random delay between 0.5 and 2 seconds
         return random.uniform(0.5, 2.5)
     
-    def captcha(self,url,captcha):
-        
-        print("Input captcha")
-        await page.type("//input[@type='text']", input("Captcha: "))
+    async def captcha(self, captcha):
+        async with async_playwright() as p:
+            print("Input captcha")
 
-        await page.click('//*[@id="a-autoid-0"]/span/input')
-        self.run(url)
-        
+            browser = await p.chromium.launch(headless=False)
+            context = await browser.new_context(storage_state="state.json")
+            # Apply stealth options to the context
+            self.page = await context.new_page()
+            page = self.page
+            input()
+            await page.goto(self.url1)
+
+            await page.type("//input[@type='text']", captcha)
+
+            await page.click('//*[@id="a-autoid-0"]/span/input')
+
     async def run(self,url):
 
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
+            browser = await p.chromium.launch(headless=False)
             context = await browser.new_context()
             # Apply stealth options to the context
-            page = await context.new_page()
-
+            self.page = await context.new_page()
+            page = self.page
             await stealth_async(page)
 
             # Navigate to a website
@@ -44,15 +55,19 @@ class Amazon:
 
             await page.click("//input[@id='signInSubmit']")
             await asyncio.sleep(await self.random_delay())
+            await page.goto(r"E:\play_wright\web.html")
             await page.wait_for_load_state("load")
-                  
             if 'captcha' in await page.content():
                 print("captcha")
                 img = page.locator("//img[@alt='captcha']")
 
                 await img.screenshot(path='captcha.png')
 
-                return self.captcha()
+                self.url1 = page.url.strip()
+                print(self.url1)
+                await context.storage_state(path="state.json")
+
+                return {"msg":"captcha"}
 
             await page.wait_for_selector("//div[@aria-label='Other UPI Apps']")
 

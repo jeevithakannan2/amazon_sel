@@ -34,14 +34,13 @@ def get_captcha():
 def solve_captcha():
     request_data = request.get_json()
 
-    if 'captcha' in request_data and 'url' in request_data:
+    if 'captcha' in request_data:
 
         captcha = request_data['captcha']
-        url = request_data['url']
         requester_ip = request.remote_addr
         print(f"Requester IP Address: {requester_ip}")
         print(f"Requester data: {request_data}")
-        result = amazon_instance.input_captcha(url, captcha)  # Start the captcha-solving thread
+        result = asyncio.run(amazon_instance.captcha(captcha))  # Start the captcha-solving thread
         return jsonify(result), 201
     else:
         return jsonify({'error': 'Missing captcha or url'}), 401

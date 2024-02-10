@@ -7,7 +7,6 @@ from playwright_stealth import stealth_async
 class Amazon:
     def __init__(self):
         self.page = None
-        self.url1 = None
 
     async def random_delay(self):
         # Introduce a random delay between 0.5 and 2 seconds
@@ -17,16 +16,9 @@ class Amazon:
         async with async_playwright() as p:
             print("Input captcha")
 
-            browser = await p.chromium.launch(headless=True)
-            context = await browser.new_context(storage_state="state.json")
-            # Apply stealth options to the context
-            self.page = await context.new_page()
             page = self.page
-            input()
-            await page.goto(self.url1)
-
+            
             await page.type("//input[@type='text']", captcha)
-            input()
             await page.click('//*[@id="a-autoid-0"]/span/input')
             
             input()
@@ -71,9 +63,9 @@ class Amazon:
                 self.url1 = page.url.strip()
                 print(self.url1)
                 await context.storage_state(path="state.json")
-
-                return {"msg":"captcha"}
-
+                sleep(20)
+                
+            print("Sleep Over")
             await page.wait_for_selector("//div[@aria-label='Other UPI Apps']")
 
             await asyncio.sleep(await self.random_delay())

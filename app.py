@@ -1,9 +1,10 @@
 import asyncio
 import random
 from time import sleep
+import uvloop
 from playwright.async_api import async_playwright
 from playwright_stealth import stealth_async
-
+asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 class Amazon:
     def __init__(self):
         self.page = None
@@ -14,7 +15,6 @@ class Amazon:
     
     async def captcha(self, captcha):
         async with async_playwright() as p:
-            print("Input captcha")
 
             page = self.page
             

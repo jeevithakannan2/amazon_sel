@@ -1,11 +1,13 @@
 from flask import Flask, jsonify, request, send_file
 from app import Amazon
 import asyncio
+import uvloop
 
 app = Flask(__name__)
 amazon_instance = Amazon()
-#
+asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
+loop = asyncio.get_event_loop()
 @app.route("/amazon", methods=['POST'])
 def login_route():
     # Assuming you receive some data in the request, for example, JSON data
@@ -16,7 +18,7 @@ def login_route():
     print(f"Requester data: {request_data}")
     if 'url' in request_data:
         url = request_data['url']
-        return jsonify(asyncio.run(amazon_instance.run(url))), 200
+        return jsonify(loop.run_until_complete(amazon_instance.run(url))), 200
     else:
         return jsonify({'error': "Enter valid url"}), 400
 
@@ -40,7 +42,7 @@ def solve_captcha():
         requester_ip = request.remote_addr
         print(f"Requester IP Address: {requester_ip}")
         print(f"Requester data: {request_data}")
-        result = asyncio.run(amazon_instance.captcha(captcha))  # Start the captcha-solving thread
+        result = loop.run_until_complete(amazon_instance.captcha(captcha))  # Start the captcha-solving thread
         return jsonify(result), 201
     else:
         return jsonify({'error': 'Missing captcha or url'}), 401

@@ -7,7 +7,7 @@ from playwright_stealth import stealth_async
 class Amazon:
     def __init__(self):
         self.page = None
-
+#
     async def random_delay(self):
         # Introduce a random delay between 0.5 and 2 seconds
         return random.uniform(0.5, 2.5)

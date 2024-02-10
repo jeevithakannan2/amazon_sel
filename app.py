@@ -4,7 +4,7 @@ from time import sleep
 from playwright.async_api import async_playwright
 from playwright_stealth import stealth_async
 
-#
+
 class Amazon:
     async def random_delay(self):
         # Introduce a random delay between 0.5 and 2 seconds

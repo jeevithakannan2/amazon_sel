@@ -14,7 +14,7 @@ class Amazon:
         # Introduce a random delay between 0.5 and 2 seconds
         return random.uniform(0.5, 2.5)
 
-    async def captcha(self, captcha):
+    async def captcha_inp(self, captcha):
         print("Input captcha")
 
         page = self.page
@@ -22,10 +22,25 @@ class Amazon:
         await page.type("//input[@type='text']", captcha)
         await page.click('//*[@id="a-autoid-0"]/span/input')
 
-        input()
-        html = await page.content()
-        with open('webpage.html', 'w', encoding='UTF-8') as f:
-            f.write(html)
+        await page.wait_for_load_state("networkidle0")
+        if 'captcha' in await page.content():
+            return {"msg": "Wrong captcha"}
+        else:
+            return {"msg": "captcha entered"}
+
+    async def captcha(self):
+        page = self.page
+        print("captcha")
+        img = page.locator("//img[@alt='captcha']")
+
+        await img.screenshot(path='captcha.png')
+        url = page.url.strip()
+        print(url)
+        page.wait_for_timeout(20000)
+        if 'captcha' in await page.content():
+            await self.captcha()
+        else:
+            return
 
     async def run(self, url):
         async with async_playwright() as p:
@@ -39,7 +54,6 @@ class Amazon:
             # Navigate to a website
             await page.goto(url)
             await page.wait_for_load_state("load")
-
             await asyncio.sleep(await self.random_delay())
             await page.click("//input[@id='buy-now-button']")
 
@@ -53,20 +67,18 @@ class Amazon:
             await page.click("//input[@id='signInSubmit']")
             await asyncio.sleep(await self.random_delay())
 
-            await page.wait_for_load_state("load")
-            await page.goto(r"E:\play_wright\web.html")
+            await page.wait_for_timeout(10000)
             if 'captcha' in await page.content():
-                print("captcha")
-                img = page.locator("//img[@alt='captcha']")
-
-                await img.screenshot(path='captcha.png')
-
-                self.url1 = page.url.strip()
-                print(self.url1)
-                await context.storage_state(path="state.json")
-                sleep(20)
+                await self.captcha()
 
             print("Sleep Over")
+
+            if 'special delivery' in await page.content():
+                print("Spl delivery option")
+                await page.click("//span[contains(@data-a-tooltip-button-blocker,'options-continue-button')]")
+
+
+
             await page.wait_for_selector("//div[@aria-label='Other UPI Apps']")
 
             await asyncio.sleep(await self.random_delay())
@@ -81,26 +93,36 @@ class Amazon:
 
             await page.click("//input[@name='ppw-widgetEvent:SetPaymentPlanSelectContinueEvent']")
 
+            await page.wait_for_timeout(7500)
+            if 'Prime' in await page.content():
+                await page.click("//*[@id='prime-interstitial-nothanks-button']")
+
+
             await page.wait_for_selector("//span[@id='subtotals-marketplace-spp-bottom']")
 
             prices = {}
-            items_price = await page.text_content(
-                "//tr[.//td[contains(., 'Items')]]//td[contains(@class, 'a-text-right')]")
-            delivery_price = await page.text_content(
-                "//tr[.//td[contains(., 'Delivery')]]//td[contains(@class, 'a-text-right')]")
-            total_price = await page.text_content(
-                "//tr[.//td[contains(., 'Total')]]//td[contains(@class, 'a-text-right')]")
-            promotion_price = await page.text_content(
-                "//tr[.//td[contains(., 'Promotion')]]//td[contains(@class, 'a-text-right')]")
-            order_total_price = await page.text_content(
-                "//tr[.//td[contains(., 'Order')]]//td[contains(@class, 'a-text-right')]")
-
+            try:
+                items_price = await page.text_content(
+                    "//tr[.//td[contains(., 'Items')]]//td[contains(@class, 'a-text-right')]", timeout=1000)
+                delivery_price = await page.text_content(
+                    "//tr[.//td[contains(., 'Delivery')]]//td[contains(@class, 'a-text-right')]", timeout=1000)
+                total_price = await page.text_content(
+                    "//tr[.//td[contains(., 'Total')]]//td[contains(@class, 'a-text-right')]", timeout=1000)
+                promotion_price = await page.text_content(
+                    "//tr[.//td[contains(., 'Promotion')]]//td[contains(@class, 'a-text-right')]", timeout=1000)
+                order_total_price = await page.text_content(
+                    "//tr[.//td[contains(., 'Order')]]//td[contains(@class, 'a-text-right')]", timeout=1000)
+            except Exception:
+                pass
             # adding prices to the dictionary
-            prices['items'] = items_price.strip()
-            prices['delivery'] = delivery_price.strip()
-            prices['total'] = total_price.strip()
-            prices['promotion applied'] = promotion_price.strip()
-            prices['order total'] = order_total_price.strip()
+            try:
+                prices['items'] = items_price.strip()
+                prices['delivery'] = delivery_price.strip()
+                prices['total'] = total_price.strip()
+                prices['promotion applied'] = promotion_price.strip()
+                prices['order total'] = order_total_price.strip()
+            except Exception:
+                pass
 
             print(prices)
 

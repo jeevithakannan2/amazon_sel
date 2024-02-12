@@ -34,7 +34,7 @@ class Amazon:
         await img.screenshot(path=f'captcha_{self.uuidn}.png')
         print("Saved captcha")
         await page.wait_for_selector("//*[@id='a-autoid-0']/span/input", state='attached')
-        js = await page.wait_for_function('() => document.readyState === "complete"')
+        await page.wait_for_function('() => document.readyState === "complete"')
 
         if 'captcha' in await page.content():
             self.captcha_count += 1
@@ -64,10 +64,8 @@ class Amazon:
 
                 await page.click("//input[@id='signInSubmit']")
                 await page.wait_for_timeout(2000)
-                js = await page.wait_for_function('() => document.readyState === "complete"')
-                json_val = await js.json_value()
-                print("STATE: ",str(json_val))
-
+                await page.wait_for_function('() => document.readyState === "complete"')
+                
                 if 'captcha' in await page.content():
                     await self.captcha()
 
@@ -91,14 +89,12 @@ class Amazon:
                 await page.click("//input[@name='ppw-widgetEvent:SetPaymentPlanSelectContinueEvent']", delay=5)
 
                 try:
-                    await page.wait_for_selector("//*[@id='prime-interstitial-nothanks-button']", state='visible', timeout=8000)
-                    await page.wait_for_timeout(1000)
+                    await page.wait_for_selector("//*[@id='prime-interstitial-nothanks-button']", state='visible', timeout=5000)
                     await page.evaluate('document.querySelector("#prime-interstitial-nothanks-button").click()')
 
                 except Exception:
                     pass
                 await page.wait_for_selector("//span[@id='subtotals-marketplace-spp-bottom']", timeout=45000)
-                await page.wait_for_timeout(3000)
 
                 data = {}
                 rows = await page.query_selector_all("//*[@id='subtotals-marketplace-table']/tbody/tr")

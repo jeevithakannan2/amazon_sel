@@ -4,7 +4,6 @@ from app import Amazon
 app = Quart(__name__)
 
 global uuidn
-global captcha_count
 global amazon_instance
 
 @app.route("/amazon", methods=['POST'])
@@ -19,13 +18,11 @@ async def login_route():
             url = request_data['url']
             if '/dp/' in url:
                 global uuidn
-                global captcha_count
                 global amazon_instance
 
                 amazon_instance = Amazon()
                 uuidn = amazon_instance.uuidn
-                captcha_count = amazon_instance.captcha_count
-
+                
                 result = await amazon_instance.run(url)
                 return jsonify(result), 200
             else:
@@ -40,9 +37,9 @@ async def login_route():
 async def get_captcha():
     requester_ip = request.remote_addr
     print(f"Requester IP Address: {requester_ip}")
-
+    captcha_count = amazon_instance.captcha_count
     try:
-        with open(f'captcha_{login_route}.txt', 'r') as f:
+        with open(f'captcha_{uuidn}.txt', 'r') as f:
             cou = f.read()
             print(cou)
             print(captcha_count)

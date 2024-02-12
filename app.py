@@ -1,5 +1,6 @@
 import os
-
+import traceback
+from datetime import datetime
 from playwright.async_api import async_playwright
 from playwright_stealth import stealth_async
 import uuid
@@ -31,9 +32,9 @@ class Amazon:
             f.write(str(self.captcha_count))
 
         await img.screenshot(path=f'captcha_{self.uuidn}.png')
-
+        print("Saved captcha")
         await page.wait_for_selector("//*[@id='a-autoid-0']/span/input", state='attached')
-        await page.wait_for_timeout(30000)
+        js = await page.wait_for_function('() => document.readyState === "complete"')
 
         if 'captcha' in await page.content():
             self.captcha_count += 1
@@ -62,8 +63,10 @@ class Amazon:
                 await page.fill("//input[@type='password']", 'jeeva2005')
 
                 await page.click("//input[@id='signInSubmit']")
-                await page.wait_for_load_state("domcontentloaded")
                 await page.wait_for_timeout(2000)
+                js = await page.wait_for_function('() => document.readyState === "complete"')
+                json_val = await js.json_value()
+                print("STATE: ",str(json_val))
 
                 if 'captcha' in await page.content():
                     await self.captcha()
@@ -152,14 +155,15 @@ class Amazon:
 
 
             except Exception as e:
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 print("Error")
-                url = page.url.strip()
                 html = await page.content()
                 with open('error.html', 'w', encoding='UTF-8') as f:
                     f.write(html)
                 with open('error.txt', 'a') as f1:
-                    f1.write('\n' + str(e) + '\n')
-                    f1.write(url)
+                    f1.write(f"\n{timestamp} : " + str(e) + '\n')
+                    traceback.print_exc(file=f1)
+
 
     def __del__(self):
         try:
